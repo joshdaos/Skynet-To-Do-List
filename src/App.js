@@ -18,7 +18,16 @@ import { Header, Tab, Container } from 'semantic-ui-react';
 /************************************************/
 /*        Step 1.2 Code goes here               */
 /************************************************/
+// Import the SkynetClient and a helper
+import { SkynetClient } from 'skynet-js';
 
+// We'll define a portal to allow for developing on localhost.
+// When hosted on a skynet portal, SkynetClient doesn't need any arguments.
+const portal =
+  window.location.hostname === 'localhost' ? 'https://siasky.net' : undefined;
+
+// Initiate the SkynetClient
+const client = new SkynetClient(portal);
 
 /*****/
 
@@ -85,12 +94,22 @@ function App() {
     /************************************************/
     /*        Part 1: Upload a file                */
     /************************************************/
-    // console.log('Uploading file...');
+    console.log('Uploading file...');
 
     /************************************************/
     /*        Step 1.3 Code goes here               */
     /************************************************/
+    // Upload user's file and get backs descriptor for our Skyfile
+    const { skylink } = await client.uploadFile(file);
 
+    // skylinks start with `sia://` and don't specify a portal URL
+    // we can generate URLs for our current portal though.
+    const skylinkUrl = await client.getSkylinkUrl(skylink);
+
+    console.log('File Uploaded:', skylinkUrl);
+
+    // To use this later in our React app, save the URL to the state.
+    setFileSkylink(skylinkUrl);
 
     /************************************************/
     /*        Part 2: Upload a Web Page             */
