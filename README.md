@@ -1,4 +1,4 @@
-# Skynet-ToDoList
+# Skynet-Workshop
 
 ## Take-Home Challenge
 - Creating a To-Do List with React
