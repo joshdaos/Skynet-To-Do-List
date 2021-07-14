@@ -114,12 +114,38 @@ function App() {
     /************************************************/
     /*        Part 2: Upload a Web Page             */
     /************************************************/
-    // console.log('Uploading web page...');
+    console.log('Uploading web page...');
 
     /************************************************/
     /*        Step 2.1 Code goes here               */
     /************************************************/
+    // Create the text of an html file what will be uploaded to Skynet
+    // We'll use the skylink from Part 1 in the file to load our Skynet-hosted image.
+    const webPage = generateWebPage(name, skylinkUrl);
 
+    // Build our directory object, we're just including the file for our webpage.
+    const webDirectory = {
+      'index.html': webPage,
+      // 'couldList.jpg': moreFiles,
+    };
+
+    // Upload user's webpage
+    const { skylink: dirSkylink } = await client.uploadDirectory(
+      webDirectory,
+      'certificate'
+    );
+
+    // Generate a URL for our current portal
+    // We'll use a subdomain-style link
+    const dirSkylinkUrl = await client.getSkylinkUrl(dirSkylink, {
+      subdomain: true,
+    });
+
+    console.log('Web Page Uploaded:', dirSkylinkUrl);
+
+    // To use this later in our React app, save the URL to the state.
+    setWebPageSkylink(dirSkylink);
+    setWebPageSkylinkUrl(dirSkylinkUrl);
 
     /************************************************/
     /*        Part 3: MySky                         */
