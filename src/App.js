@@ -70,7 +70,7 @@ function App() {
   /************************************************/
 
   // choose a data domain for saving files in MySky
-  const dataDomain = '';
+  const dataDomain = 'localhost';
 
   /*****/
 
@@ -79,7 +79,33 @@ function App() {
     /************************************************/
     /*        Step 3.2 Code goes here               */
     /************************************************/
+    // define async setup function
+    async function initMySky() {
+      try {
+        // load invisible iframe and define app's data domain
+        // needed for permissions write
+        const mySky = await client.loadMySky(dataDomain);
 
+        // load necessary DACs and permissions
+        // await mySky.loadDacs(contentRecord);
+
+        // check if user is already logged in with permissions
+        const loggedIn = await mySky.checkLogin();
+
+        // set react state for login status and
+        // to access mySky in rest of app
+        setMySky(mySky);
+        setLoggedIn(loggedIn);
+        if (loggedIn) {
+          setUserID(await mySky.userID());
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+// call async setup function
+initMySky();
 
     /*****/
   }, []);
@@ -121,7 +147,7 @@ function App() {
     /************************************************/
     // Create the text of an html file what will be uploaded to Skynet
     // We'll use the skylink from Part 1 in the file to load our Skynet-hosted image.
-    const webPage = generateWebPage(name, skylinkUrl);
+    const webPage = generateWebPage(name, skylinkUrl, userID, filePath);
 
     // Build our directory object, we're just including the file for our webpage.
     const webDirectory = {
@@ -150,12 +176,22 @@ function App() {
     /************************************************/
     /*        Part 3: MySky                         */
     /************************************************/
-    // console.log('Saving user data to MySky file...');
+    console.log('Saving user data to MySky file...');
 
     /************************************************/
     /*        Step 3.6 Code goes here              */
     /************************************************/
+    // create JSON data to write to MySky
+    const jsonData = {
+      name,
+      skylinkUrl,
+      dirSkylink,
+      dirSkylinkUrl,
+      color: userColor,
+    };
 
+    // call helper function for MySky Write
+    await handleMySkyWrite(jsonData);
 
     /*****/
 
@@ -166,7 +202,15 @@ function App() {
     /************************************************/
     /*        Step 3.3 Code goes here               */
     /************************************************/
+    // Try login again, opening pop-up. Returns true if successful
+    const status = await mySky.requestLoginAccess();
 
+    // set react state
+    setLoggedIn(status);
+
+    if (status) {
+      setUserID(await mySky.userID());
+    }
 
     /*****/
   };
@@ -175,7 +219,12 @@ function App() {
     /************************************************/
     /*        Step 3.4 Code goes here              */
     /************************************************/
+    // call logout to globally logout of mysky
+    await mySky.logout();
 
+    //set react state
+    setLoggedIn(false);
+    setUserID('');
 
     /*****/
   };
@@ -184,7 +233,14 @@ function App() {
     /************************************************/
     /*        Step 3.7 Code goes here              */
     /************************************************/
-
+    // Use setJSON to save the user's information to MySky file
+    try {
+      console.log('userID', userID);
+      console.log('filePath', filePath);
+      await mySky.setJSON(filePath, jsonData);
+    } catch (error) {
+      console.log(`error with setJSON: ${error.message}`);
+    }
 
     /*****/
     /************************************************/
